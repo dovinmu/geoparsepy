@@ -47,7 +47,7 @@ note on spotting connection failures in Postgres via psycopg2:
 
 import os, re, sys, copy, collections, codecs, string, traceback, datetime, time, math, logging
 import psycopg2, psycopg2.extras
-from SqlHandler import SqlHandler
+from .SqlHandler import SqlHandler
 
 class PostgresqlHandler( SqlHandler ) :
 	"""
@@ -125,7 +125,7 @@ class PostgresqlHandler( SqlHandler ) :
 				self.reconnect()
 				return
 
-			except psycopg2.Error, err :
+			except psycopg2.Error as err :
 				# check for the special case that the database connection has been terminated (e.g. Postgres reboot)
 				# and needs to be restarted. this is NOT easy in psycopg2 as the standard error codes are embedded
 				# within the message (!) not the err.pgcode of the psycopg2.OperationalError class
@@ -170,7 +170,7 @@ class PostgresqlHandler( SqlHandler ) :
 			raise Exception( 'SQL query failed : sql statement not a tuple' )
 		if len(query) != 2 :
 			raise Exception( 'SQL query failed : sql statement not a tuple of length 2' )
-		if not isinstance( query[0], (str,unicode) ) : 
+		if not isinstance( query[0], str ) : 
 			raise Exception( 'SQL query failed : sql statement query string not type str or unicode' )
 		if (query[1] != None) and (not isinstance( query[1], tuple )) : 
 			raise Exception( 'SQL query failed : sql statement variable not tuple or None' )
@@ -218,7 +218,7 @@ class PostgresqlHandler( SqlHandler ) :
 				# success
 				return listResult
 
-			except psycopg2.Error, err :
+			except psycopg2.Error as err :
 				# check for the special case that the database connection has been terminated (e.g. Postgres reboot)
 				# and needs to be restarted. this is NOT easy in psycopg2 as the standard error codes are embedded
 				# within the message (!) not the err.pgcode of the psycopg2.OperationalError class
@@ -299,7 +299,7 @@ class PostgresqlHandler( SqlHandler ) :
 						raise Exception( 'SQL query failed : sql statement not a tuple' )
 					if len(tupleStatement) != 2 :
 						raise Exception( 'SQL query failed : sql statement not a tuple of length 2' )
-					if not isinstance( tupleStatement[0], (str,unicode) ) : 
+					if not isinstance( tupleStatement[0], str ) : 
 						raise Exception( 'SQL query failed : sql statement query string not type str or unicode' )
 					if (tupleStatement[1] != None) and (not isinstance( tupleStatement[1], tuple )) : 
 						raise Exception( 'SQL query failed : sql statement variable not tuple or None' )
@@ -330,7 +330,7 @@ class PostgresqlHandler( SqlHandler ) :
 				# success
 				return listResult
 
-			except psycopg2.Error, err :
+			except psycopg2.Error as err :
 				# check for the special case that the database connection has been terminated (e.g. Postgres reboot)
 				# and needs to be restarted. this is NOT easy in psycopg2 as the standard error codes are embedded
 				# within the message (!) not the err.pgcode of the psycopg2.OperationalError class
@@ -408,7 +408,7 @@ class PostgresqlHandler( SqlHandler ) :
 
 					if not isinstance( statement_list[nStatementIndex], tuple ) :
 						raise Exception( 'SQL statement @ index ' + str(nStatementIndex) + ' not a tuple' )
-					if not isinstance( statement_list[nStatementIndex][0], (str,unicode) ) :
+					if not isinstance( statement_list[nStatementIndex][0], str ) :
 						raise Exception( 'SQL statement[0] @ index ' + str(nStatementIndex) + ' not a str or unicode' )
 					if (statement_list[nStatementIndex][1] != None) and (not isinstance( statement_list[nStatementIndex][1], tuple )) : 
 						raise Exception( 'SQL statement[1] @ index ' + str(nStatementIndex) + ' not tuple or None' )
@@ -430,7 +430,7 @@ class PostgresqlHandler( SqlHandler ) :
 				# success
 				return
 
-			except psycopg2.Error, err :
+			except psycopg2.Error as err :
 				# check for the special case that the database connection has been terminated (e.g. Postgres reboot)
 				# and needs to be restarted. this is NOT easy in psycopg2 as the standard error codes are embedded
 				# within the message (!) not the err.pgcode of the psycopg2.OperationalError class
@@ -526,7 +526,7 @@ class PostgresqlHandler( SqlHandler ) :
 
 			# register hstore support (turn it on for all cursors globally)
 			# this allows python dict to be mapped to hstore
-			psycopg2.extras.register_hstore( conn_or_curs = self.connection, globally = True, unicode=True, oid=None, array_oid=None )
+			psycopg2.extras.register_hstore( conn_or_curs = self.connection, globally = True, str=True, oid=None, array_oid=None )
 
 	def close( self ) :
 		"""

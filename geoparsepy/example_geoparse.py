@@ -37,7 +37,7 @@ Example geoparsing a set of text statements using the global focus area
 """
 
 import os, sys, logging, traceback, codecs, datetime, copy, time, ast, math, re, random, shutil, json
-import config_helper, common_parse_lib, PostgresqlHandler, geo_parse_lib, geo_preprocess_lib
+from . import config_helper, common_parse_lib, PostgresqlHandler, geo_parse_lib, geo_preprocess_lib
 import pkg_resources
 
 def demo( config_file = None ) :
@@ -88,8 +88,8 @@ def demo( config_file = None ) :
 			lang_codes = listLangs,
 			logger = logger,
 			corpus_dir = strCorpusDir,
-			whitespace = u'"\u201a\u201b\u201c\u201d()',
-			sent_token_seps = ['\n','\r\n', '\f', u'\u2026'],
+			whitespace = '"\u201a\u201b\u201c\u201d()',
+			sent_token_seps = ['\n','\r\n', '\f', '\u2026'],
 			punctuation = """,;\/:+-#~&*=!?""",
 			)
 
@@ -112,11 +112,11 @@ def demo( config_file = None ) :
 
 		# create an inverted index
 		indexed_locations = geo_parse_lib.calc_inverted_index( cached_locations, dictGeospatialConfig )
-		logger.info( 'number of indexed phrases = ' + str(len(indexed_locations.keys())) )
+		logger.info( 'number of indexed phrases = ' + str(len(list(indexed_locations.keys()))) )
 
 		# create a geom index
 		indexed_geoms = geo_parse_lib.calc_geom_index( cached_locations )
-		logger.info( 'number of indexed geoms = ' + str(len(indexed_geoms.keys())) )
+		logger.info( 'number of indexed geoms = ' + str(len(list(indexed_geoms.keys()))) )
 
 		# create an OSM ID lookup table
 		osmid_lookup = geo_parse_lib.calc_osmid_lookup( cached_locations )
@@ -126,8 +126,8 @@ def demo( config_file = None ) :
 
 		# define some text to geoparse
 		listText = [
-			u'hello New York, USA its Bill from Bassett calling',
-			u'live on the BBC Victoria Derbyshire is visiting Derbyshire for an exclusive UK interview',
+			'hello New York, USA its Bill from Bassett calling',
+			'live on the BBC Victoria Derbyshire is visiting Derbyshire for an exclusive UK interview',
 			]
 
 		# tokenize sentences into token sets ready for geoparsing
@@ -234,11 +234,11 @@ if __name__ == '__main__' :
 	# check args
 	#
 	if len(sys.argv) < 2 :
-		print 'Usage: example_geoparse.py <config file>\n'
+		print('Usage: example_geoparse.py <config file>\n')
 		sys.stdout.flush()
 		sys.exit(1)
 	if not os.path.isfile(sys.argv[1]) :
-		print '<config file> ' + sys.argv[1] + ' does not exist\n'
+		print('<config file> ' + sys.argv[1] + ' does not exist\n')
 		sys.stdout.flush()
 		sys.exit(1)
 

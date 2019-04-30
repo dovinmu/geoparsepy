@@ -62,11 +62,11 @@ This geoparsing algorithm uses a large memory footprint, proportional to the num
 #   + 3,800 instagram each with geotag = 955s = 3.7 items / sec
 
 
-import os, re, sys, copy, collections, codecs, string, ConfigParser, traceback, datetime, time, math
+import os, re, sys, copy, collections, codecs, string, configparser, traceback, datetime, time, math
 import nltk, nltk.stem.porter, nltk.corpus, numpy, shapely, shapely.speedups, shapely.prepared, shapely.wkt, shapely.geometry
 from nltk.util import ngrams
 from nltk.corpus import wordnet
-import common_parse_lib
+from . import common_parse_lib
 import pkg_resources
 
 
@@ -117,7 +117,7 @@ def get_geoparse_config( lang_codes = [], logger = None, corpus_dir = None, **kw
 
 	# setup whitespace and punctuation for geoparse work (unless caller has provided something else in which case this default will be overwridden)
 	if not 'whitespace' in dictArgs :
-		dictArgs['whitespace'] = u'[]"\u201a\u201b\u201c\u201d()'
+		dictArgs['whitespace'] = '[]"\u201a\u201b\u201c\u201d()'
 	if not 'punctuation' in dictArgs :
 		dictArgs['punctuation'] = """,;\/:+-#~&*=!?""",
 
@@ -146,7 +146,7 @@ def get_geoparse_config( lang_codes = [], logger = None, corpus_dir = None, **kw
 				line = line.rstrip('\r')
 
 				# remove UTF8 byte-order mark at start of file (added for UTF encoded files to indicate if its UTF-8, UTF-16 etc)
-				line = line.lstrip( u'\ufeff' )
+				line = line.lstrip( '\ufeff' )
 
 				# ignore comments in stoplist file
 				if (len(line) > 1) and (not line.startswith('#')) :
@@ -174,7 +174,7 @@ def get_geoparse_config( lang_codes = [], logger = None, corpus_dir = None, **kw
 			line = line.rstrip('\r')
 
 			# remove UTF8 byte-order mark at start of file (added for UTF encoded files to indicate if its UTF-8, UTF-16 etc)
-			line = line.lstrip( u'\ufeff' )
+			line = line.lstrip( '\ufeff' )
 
 			# ignore comments in stoplist file
 			if (len(line) > 1) and (not line.startswith('#')) :
@@ -279,7 +279,7 @@ def get_geoparse_config( lang_codes = [], logger = None, corpus_dir = None, **kw
 				line = line.rstrip('\r')
 
 				# remove UTF8 byte-order mark at start of file (added for UTF encoded files to indicate if its UTF-8, UTF-16 etc)
-				line = line.lstrip( u'\ufeff' )
+				line = line.lstrip( '\ufeff' )
 
 				# create a list of [OSMID, OSMType, alt_name, ...] for later token expansion
 				if (len(line) > 1) and (not line.startswith('#')) :
@@ -319,7 +319,7 @@ def is_good_place_name( phrase, dict_osm_tags, dict_geospatial_config ) :
 	"""
 
 	# check args without defaults
-	if not isinstance( phrase, unicode ) and not isinstance( phrase, str ):
+	if not isinstance( phrase, str ) and not isinstance( phrase, str ):
 		raise Exception( 'invalid phrase' )
 	if not isinstance( dict_osm_tags, dict ) :
 		raise Exception( 'invalid dict_osm_tags' )
@@ -403,7 +403,7 @@ def expand_hashtag( phrase, dict_geospatial_config ) :
 		raise Exception( 'invalid dict_geospatial_config' )
 
 	if len(phrase) == 0 :
-		return u''
+		return ''
 
 	strHashtag = copy.deepcopy( phrase )
 
@@ -418,9 +418,9 @@ def expand_hashtag( phrase, dict_geospatial_config ) :
 	# remove spaces to make a hashtag word (e.g. newyork)
 	strHashtag = string.replace( strHashtag,' ','' )
 	if len(strHashtag) == 0 :
-		return u''
+		return ''
 
-	return u'#' + strHashtag
+	return '#' + strHashtag
 
 
 def expand_osm_alternate_names( tuple_osmid, phrase, dict_osm_tags, dict_geospatial_config ) :
@@ -452,10 +452,10 @@ def expand_osm_alternate_names( tuple_osmid, phrase, dict_osm_tags, dict_geospat
 
 	# compile a list of tags to check
 	# note: 'alt_name:en' actually appears in database as 'alt name:en'
-	listTagsToCheck = [ u'name', u'ref', u'loc ref', u'nat ref', u'old ref', u'reg ref', u'ISO3166-1', u'ISO3166-1:alpha2', u'ISO3166-1:alpha3' ]
-	listTagsToCheck.extend( [ u'alt name', u'alt name:1', u'alt name:2', u'int name', u'loc name', u'nat name', u'old name', u'reg name', u'short name', u'name:abbreviation', u'name:simple', u'sorting name' ] )
+	listTagsToCheck = [ 'name', 'ref', 'loc ref', 'nat ref', 'old ref', 'reg ref', 'ISO3166-1', 'ISO3166-1:alpha2', 'ISO3166-1:alpha3' ]
+	listTagsToCheck.extend( [ 'alt name', 'alt name:1', 'alt name:2', 'int name', 'loc name', 'nat name', 'old name', 'reg name', 'short name', 'name:abbreviation', 'name:simple', 'sorting name' ] )
 	for strLangCode in dict_geospatial_config['lang_codes'] :
-		listTagsToCheck.extend( [ u'name:' + strLangCode, u'alt name:' + strLangCode, u'old name:' + strLangCode ] )
+		listTagsToCheck.extend( [ 'name:' + strLangCode, 'alt name:' + strLangCode, 'old name:' + strLangCode ] )
 
 	# check for OSM reference tags and add them (avoid duplicates)
 	for strTag in listTagsToCheck :
@@ -530,7 +530,7 @@ def expand_osm_alternate_names( tuple_osmid, phrase, dict_osm_tags, dict_geospat
 
 	# expand gazeteer entries for this OSMID (if any)
 	if dict_geospatial_config['gazeteers'] != None :
-		for strGaz in dict_geospatial_config['gazeteers'].keys() :
+		for strGaz in list(dict_geospatial_config['gazeteers'].keys()) :
 			for nIndexGaz in range( len(dict_geospatial_config['gazeteers'][strGaz]) ) :
 
 				# in OSM relations have a negative ID, nodes and way positive
@@ -714,7 +714,7 @@ def calc_OSM_linkedgeodata_uri( tuple_osmid, geom ) :
 
 	if (not isinstance( tuple_osmid, tuple )) or (len(tuple_osmid) == 0) :
 		raise Exception( 'invalid tuple_osmid' )
-	if (not isinstance( geom, str )) and (not isinstance( geom, unicode )) :
+	if (not isinstance( geom, str )) and (not isinstance( geom, str )) :
 		raise Exception( 'invalid geom' )
 
 	# we will only provide a URI for the first OSMID if the location is a complex one
@@ -745,7 +745,7 @@ def calc_OSM_uri( tuple_osmid, geom ) :
 
 	if (not isinstance( tuple_osmid, tuple )) or (len(tuple_osmid) == 0) :
 		raise Exception( 'invalid tuple_osmid' )
-	if (not isinstance( geom, str )) and (not isinstance( geom, unicode )) :
+	if (not isinstance( geom, str )) and (not isinstance( geom, str )) :
 		raise Exception( 'invalid geom' )
 
 	# we will only provide a URI for the first OSMID if the location is a complex one
@@ -1017,7 +1017,7 @@ def read_location_type_corpus( filename, dict_geospatial_config ) :
 		line = line.rstrip( '\r' )
 
 		# remove UTF8 byte-order mark at start of file (added for UTF encoded files to indicate if its UTF-8, UTF-16 etc)
-		line = line.lstrip( u'\ufeff' )
+		line = line.lstrip( '\ufeff' )
 
 		if (len(line) > 1) and (not line.startswith('#')) :
 			# tokenize using comma delimiter
@@ -1153,7 +1153,7 @@ def calc_geom_index( list_data, index_geom = 4, index_id = 2, index_osm_tag = 5 
 	for nDocIndex in range(len(list_data)) :
 		# get source geom
 		strGeom = list_data[nDocIndex][index_geom]
-		if (not isinstance( strGeom, str )) and (not isinstance( strGeom, unicode )) :
+		if (not isinstance( strGeom, str )) and (not isinstance( strGeom, str )) :
 			raise Exception( 'object type of geom not str,unicode : ' + str(type(strGeom)) )
 
 		# get ID tuple
@@ -1164,7 +1164,7 @@ def calc_geom_index( list_data, index_geom = 4, index_id = 2, index_osm_tag = 5 
 				tupleID = list_data[nDocIndex][index_id]
 			elif isinstance( list_data[nDocIndex][index_id], str ) :
 				tupleID = tuple( [list_data[nDocIndex][index_id]] )
-			elif isinstance( list_data[nDocIndex][index_id], unicode ) :
+			elif isinstance( list_data[nDocIndex][index_id], str ) :
 				tupleID = tuple( [list_data[nDocIndex][index_id]] )
 			else :
 				raise Exception( 'object type of ID not list,tuple,str,unicode' )
@@ -1336,7 +1336,7 @@ def reverse_geocode_geom( list_geom, dict_geom_index, dict_geospatial_config ) :
 			# loop on all token sets to geoparse
 			# use prepared geometry shapeLoc to call intersect function as it is more efficient
 			# do a quick envelope test first as its orders of magnitude quicker than checking a complex polygon like Russia's border
-			for tupleID in dict_geom_index.keys() :
+			for tupleID in list(dict_geom_index.keys()) :
 
 				listGeoms = dict_geom_index[ tupleID ]
 				for tupleGeomData in listGeoms :
@@ -1484,7 +1484,7 @@ def calc_location_confidence( list_loc, dict_geospatial_config, index_token_star
 
 	# sort list by 1st phrase size and 2nd token position and 3rd length of way (big polygons are probably better than single points)
 	# key = (1 + token end - token start) + 1.0/(2+token start) + 0.000001 * strGeom.count(',')
-	if (not isinstance( listLocs[0][index_geom], str )) and (not isinstance( listLocs[0][index_geom], unicode )) :
+	if (not isinstance( listLocs[0][index_geom], str )) and (not isinstance( listLocs[0][index_geom], str )) :
 		raise Exception( 'loc list geom index value is not of type <str> or <unicode>' ) 
 	listLocs = sorted( listLocs, key=lambda entry: (1 + entry[index_token_end] - entry[index_token_start]) + 1.0/(2+entry[index_token_start]) + 0.000001 * entry[index_geom].count(','), reverse=True )
 
@@ -2070,7 +2070,7 @@ def filter_matches_by_confidence( list_loc, dict_geospatial_config, index_token_
 		else :
 			dictPhrase[ tuplePhrase ].append( nMatchIndex1 )
 
-	for tuplePhrase1 in dictPhrase.keys() :
+	for tuplePhrase1 in list(dictPhrase.keys()) :
 		# get max
 		nConfMax = 0
 		for nMatchIndex1 in dictPhrase[ tuplePhrase1 ] :
@@ -2236,9 +2236,9 @@ def calc_multilingual_osm_name_set( dict_osm_tags, dict_geospatial_config ) :
 	# deliberately put the native name last as we would like to get the first language on the supported lang list first for human readability
 	listTagsToCheck = []
 	for strLangCode in dict_geospatial_config['lang_codes'] :
-		listTagsToCheck.extend( [ u'name:' + strLangCode, u'alt name:' + strLangCode, u'old name:' + strLangCode ] )
-	listTagsToCheck.extend( [ u'name', u'ref', u'loc ref', u'nat ref', u'old ref', u'reg ref', u'ISO3166-1', u'ISO3166-1:alpha2', u'ISO3166-1:alpha3' ] )
-	listTagsToCheck.extend( [ u'alt name', u'int name', u'loc name', u'nat name', u'old name', u'reg name', u'short name', u'name:abbreviation', u'name:simple', u'sorting name' ] )
+		listTagsToCheck.extend( [ 'name:' + strLangCode, 'alt name:' + strLangCode, 'old name:' + strLangCode ] )
+	listTagsToCheck.extend( [ 'name', 'ref', 'loc ref', 'nat ref', 'old ref', 'reg ref', 'ISO3166-1', 'ISO3166-1:alpha2', 'ISO3166-1:alpha3' ] )
+	listTagsToCheck.extend( [ 'alt name', 'int name', 'loc name', 'nat name', 'old name', 'reg name', 'short name', 'name:abbreviation', 'name:simple', 'sorting name' ] )
 
 	# check for OSM reference tags and add them (avoid duplicates)
 	for strTag in listTagsToCheck :
@@ -2262,7 +2262,7 @@ def calc_best_osm_name( target_lang, dict_osm_tags, dict_geospatial_config ) :
 	"""
 
 	# check args without defaults
-	if (not isinstance( target_lang, str )) and (not isinstance( target_lang, unicode )) :
+	if (not isinstance( target_lang, str )) and (not isinstance( target_lang, str )) :
 		raise Exception( 'invalid target_lang' )
 	if not isinstance( dict_osm_tags, dict ) :
 		raise Exception( 'invalid dict_osm_tags' )
@@ -2332,7 +2332,7 @@ def calc_inverted_index( list_data, dict_geospatial_config, index_phrase = 6, in
 			listPhrase = list( objPhrase )
 		elif isinstance( objPhrase, str) :
 			listPhrase = [objPhrase]
-		elif isinstance( objPhrase, unicode) :
+		elif isinstance( objPhrase, str) :
 			listPhrase = [objPhrase]
 		else :
 			raise Exception( 'object type of phrase not list,tuple,str,unicode' )
@@ -2340,7 +2340,7 @@ def calc_inverted_index( list_data, dict_geospatial_config, index_phrase = 6, in
 		# add each phrase
 		for strPhrase in listPhrase :
 			# calc a ngram token for this phrase
-			tuplePhrase = tuple( common_parse_lib.tokenize_sentence( unicode(strPhrase), dict_geospatial_config ) )
+			tuplePhrase = tuple( common_parse_lib.tokenize_sentence( str(strPhrase), dict_geospatial_config ) )
 
 			# add each token to the inverted index using the document index as value
 			objIndex = nDocIndex

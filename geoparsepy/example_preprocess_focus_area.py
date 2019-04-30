@@ -37,7 +37,7 @@ Example preprocessing a focus area and writing the preprocessed locations to a S
 """
 
 import os, sys, logging, traceback, codecs, datetime, copy, time, ast, math, re, random, shutil, json
-import config_helper, common_parse_lib, PostgresqlHandler, geo_preprocess_lib, geo_parse_lib
+from . import config_helper, common_parse_lib, PostgresqlHandler, geo_preprocess_lib, geo_parse_lib
 import pkg_resources
 
 def demo( config_file = None ) :
@@ -89,8 +89,8 @@ def demo( config_file = None ) :
 			lang_codes = listLangs,
 			logger = logger,
 			corpus_dir = strCorpusDir,
-			whitespace = u'"\u201a\u201b\u201c\u201d()',
-			sent_token_seps = ['\n','\r\n', '\f', u'\u2026'],
+			whitespace = '"\u201a\u201b\u201c\u201d()',
+			sent_token_seps = ['\n','\r\n', '\f', '\u2026'],
 			punctuation = """,;\/:+-#~&*=!?""",
 			)
 
@@ -117,7 +117,7 @@ def demo( config_file = None ) :
 
 		# calc each focus area - a pre-computed table is available also for global_places which takes 8 days to compute
 		if dictFocusAreaSpec != None :
-			for strFocusArea in dictFocusAreaSpec.keys() :
+			for strFocusArea in list(dictFocusAreaSpec.keys()) :
 
 				logger.info( 'starting focus area ' + strFocusArea )
 
@@ -160,11 +160,11 @@ if __name__ == '__main__' :
 	# check args
 	#
 	if len(sys.argv) < 2 :
-		print 'Usage: example_preprocess_focus_area.py <config file>\n'
+		print('Usage: example_preprocess_focus_area.py <config file>\n')
 		sys.stdout.flush()
 		sys.exit(1)
 	if not os.path.isfile(sys.argv[1]) :
-		print '<config file> ' + sys.argv[1] + ' does not exist\n'
+		print('<config file> ' + sys.argv[1] + ' does not exist\n')
 		sys.stdout.flush()
 		sys.exit(1)
 

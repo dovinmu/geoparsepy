@@ -35,8 +35,8 @@
 Config file helper functions to parse python INI files from disk and SQL database
 """
 
-import logging, json, io, ConfigParser, ast
-from SqlHandler import SqlHandler
+import logging, json, io, configparser, ast
+from .SqlHandler import SqlHandler
 
 def read_config( filename, logger = None ) :
 	"""
@@ -48,7 +48,7 @@ def read_config( filename, logger = None ) :
 	:rtype: dict
 	"""
 
-	if not isinstance( filename, (str,unicode) ) :
+	if not isinstance( filename, str ) :
 		raise Exception( 'filename invalid' )
 
 	if logger == None :
@@ -56,7 +56,7 @@ def read_config( filename, logger = None ) :
 
 	logger.info( 'reading config file : ' + str(filename) )
 	dictConfig = {}
-	configObj = ConfigParser.ConfigParser()
+	configObj = configparser.ConfigParser()
 
 	# old code does not with fir .ini files with BOM header (i.e. windows style UTF8 files)
 	#configObj.read( filename )
@@ -116,7 +116,7 @@ def read_config_from_SQL( database_handler, query, timeout_statement = 60, timeo
 	dictConfig = json.loads( strResult )
 
 	# pretty print config to log
-	for strKey in dictConfig.keys() :
+	for strKey in list(dictConfig.keys()) :
 		logger.info( str(strKey) + '= ' + repr(dictConfig[strKey]) )
 
 	# return dict of config data

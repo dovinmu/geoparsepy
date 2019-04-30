@@ -57,7 +57,7 @@ common parse lib supporting tokenization, POS tagging and sentence management
 
 """
 
-import os, re, sys, copy, collections, codecs, string, ConfigParser, traceback, datetime, time, math, subprocess, Queue, threading
+import os, re, sys, copy, collections, codecs, string, configparser, traceback, datetime, time, math, subprocess, queue, threading
 import nltk, nltk.corpus
 from nltk.util import ngrams
 
@@ -70,15 +70,15 @@ from nltk.util import ngrams
 #namespace_entity_extract_regex = re.compile(ur'[\w\@\-\\\/\:\?\=\&\+]{2,}[\.][\w\@\-\\\/\:\?\=\&\+]{2,}[\.](?:[\w\@\-\\\/\:\?\=\&\+]{2,}[\.])*[\w\@\-\\\/\:\?\=\&\+]{2,}', re.IGNORECASE | re.UNICODE)
 #url_entity_extract_regex = re.compile(ur'[\w]{3,}\:\/\/[^ \t\n\r\f\v\u2026]*', re.IGNORECASE | re.UNICODE)
 
-namespace_entity_extract = ur'\A.*?(?P<NAMESPACE>([a-zA-Z0-9_@\-]){2,}[.](([a-zA-Z0-9_@\-]){1,}[.]){1,5}([a-zA-Z0-9_@\-]){1,})'
-url_entity_extract = ur'\A.*?(?P<URI>[\w]{3,}\:\/\/[^ \t\n\r\f\v\u2026]*)'
+namespace_entity_extract = r'\A.*?(?P<NAMESPACE>([a-zA-Z0-9_@\-]){2,}[.](([a-zA-Z0-9_@\-]){1,}[.]){1,5}([a-zA-Z0-9_@\-]){1,})'
+url_entity_extract = r'\A.*?(?P<URI>[\w]{3,}\:\/\/[^ \t\n\r\f\v\u2026]*)'
 
 namespace_entity_extract_regex = re.compile( namespace_entity_extract, re.IGNORECASE | re.UNICODE | re.DOTALL)
 url_entity_extract_regex = re.compile( url_entity_extract, re.IGNORECASE | re.UNICODE | re.DOTALL)
 
 # currency and number regex
 # e.g. 56, 56.76, $54.23, $54 but NOT 52.com
-numeric_extract_regex = re.compile(ur'\A\D?\d+\.?\d*\Z', re.IGNORECASE | re.UNICODE)
+numeric_extract_regex = re.compile(r'\A\D?\d+\.?\d*\Z', re.IGNORECASE | re.UNICODE)
 
 def get_common_config( lang_codes = [], logger = None, corpus_dir = None,  stanford_base_dir = None, treetagger_base_dir = None, **kwargs ) :
 	"""
@@ -141,13 +141,13 @@ def get_common_config( lang_codes = [], logger = None, corpus_dir = None,  stanf
 		'lang_codes_ISO639_2' : [],
 		'stoplist' : [],
 		'logger' : logger,
-		'whitespace' : u'"\u201a\u201b\u201c\u201d',
+		'whitespace' : '"\u201a\u201b\u201c\u201d',
 		'punctuation' : """,;\/:+-#~&*=!?""",
 		'corpus_dir' : strCorpusDir,
 		'max_gram' : 4,
 		'first_names' : set([]),
 		'lower_tokens' : False,
-		'sent_token_seps' : ['\n','\r\n', '\f', u'\u2026'],
+		'sent_token_seps' : ['\n','\r\n', '\f', '\u2026'],
 		'stanford_base_dir' : stanford_base_dir,
 		'treetagger_base_dir' : treetagger_base_dir,
 		'lang_pos_mapping' : {},
@@ -158,7 +158,7 @@ def get_common_config( lang_codes = [], logger = None, corpus_dir = None,  stanf
 	#
 	# override any defaults with provided args
 	#
-	for k,v in kwargs.iteritems():
+	for k,v in kwargs.items():
 		dictCommonConfig[k] = v
 
 	# use None not '' for POS tagger filenames
@@ -170,7 +170,7 @@ def get_common_config( lang_codes = [], logger = None, corpus_dir = None,  stanf
 	# validate special POS tag dict before its used
 	listReplacementRegexName = dictCommonConfig['token_preservation_regex']
 	for (strRegexName,strPOSTokenName) in listReplacementRegexName :
-		if not strRegexName in dictCommonConfig.keys() :
+		if not strRegexName in list(dictCommonConfig.keys()) :
 			raise Exception( 'regex pattern ' + strRegexName + ' not in common config but is in pos_replacement_regex' )
 		if ' ' in strPOSTokenName :
 			raise Exception( 'regex pattern ' + strRegexName + ' has an invalid POS tag (spaces)' )
@@ -256,7 +256,7 @@ def get_common_config( lang_codes = [], logger = None, corpus_dir = None,  stanf
 				# convert NLTK corpus term (latin encoding) to (utf-8 encoding)
 				# note: NLTK 3 is all unicode so this is just for legacy code
 				if isinstance( strTerm,str ) :
-					strText = unicode( strTerm,'utf-8' )
+					strText = str( strTerm,'utf-8' )
 				else :
 					strText = strTerm
 
@@ -277,7 +277,7 @@ def get_common_config( lang_codes = [], logger = None, corpus_dir = None,  stanf
 			# convert NLTK corpus term (latin encoding) to (utf-8 encoding)
 			# note: NLTK 3 is all unicode so this is just for legacy code
 			if isinstance( strName,str ) :
-				strText = unicode( strName,'utf-8' )
+				strText = str( strName,'utf-8' )
 			else :
 				strText = strName
 
@@ -353,7 +353,7 @@ def ngram_tokenize_microblog_text( text, dict_common_config ) :
 	"""
 
 	# check args without defaults
-	if (not isinstance( text, str )) and (not isinstance( text, unicode )) :
+	if (not isinstance( text, str )) and (not isinstance( text, str )) :
 		raise Exception( 'invalid text' )
 	if not isinstance( dict_common_config, dict ) :
 		raise Exception( 'invalid dict_common_config' )
@@ -381,7 +381,7 @@ def unigram_tokenize_microblog_text( text, dict_common_config ) :
 	"""
 
 	# check args without defaults
-	if (not isinstance( text, str )) and (not isinstance( text, unicode )) :
+	if (not isinstance( text, str )) and (not isinstance( text, str )) :
 		raise Exception( 'invalid text' )
 	if not isinstance( dict_common_config, dict ) :
 		raise Exception( 'invalid dict_common_config' )
@@ -421,7 +421,7 @@ def unigram_tokenize_microblog_text( text, dict_common_config ) :
 		while bMore == True :
 			matchInstance = rePattern.match( text )
 			if matchInstance != None :
-				if strPOSTokenName not in matchInstance.groupdict().keys() :
+				if strPOSTokenName not in list(matchInstance.groupdict().keys()) :
 					raise Exception( 'regex pattern ' + strRegexName + ' does not create named group ' + strPOSTokenName )
 
 				strEntity = matchInstance.groupdict()[strPOSTokenName]
@@ -475,7 +475,7 @@ def unigram_tokenize_microblog_text( text, dict_common_config ) :
 
 	# restore replacement tokens (e.g. URI's and NS) to thier original values preserving them from bring broken up via tokenization
 	for nIndex in range(len(listTokensAll)) :
-		if listTokensAll[nIndex] in dictReplacementTokens.keys() :
+		if listTokensAll[nIndex] in list(dictReplacementTokens.keys()) :
 			listTokensAll[nIndex] = dictReplacementTokens[ listTokensAll[nIndex] ]
 
 	# all done
@@ -495,7 +495,7 @@ def tokenize_sentence( sent, dict_common_config ) :
 	"""
 
 	# check args without defaults
-	if (not isinstance( sent, str )) and (not isinstance( sent, unicode )) :
+	if (not isinstance( sent, str )) and (not isinstance( sent, str )) :
 		raise Exception( 'invalid sent' )
 	if not isinstance( dict_common_config, dict ) :
 		raise Exception( 'invalid dict_common_config' )
@@ -657,7 +657,7 @@ def clean_text( original_text, dict_common_config, whitespace_chars = None ) :
 	"""
 
 	# check args without defaults
-	if not isinstance( original_text, unicode ) and not isinstance( original_text, str ) :
+	if not isinstance( original_text, str ) and not isinstance( original_text, str ) :
 		raise Exception( 'invalid original_text' )
 	if not isinstance( dict_common_config, dict ) :
 		raise Exception( 'invalid dict_common_config' )
@@ -672,9 +672,9 @@ def clean_text( original_text, dict_common_config, whitespace_chars = None ) :
 	# (e.g. in formal docs named entities use capitals but for tweets this is useless)
 	# note: this will prevent accurate POS and NE later so not always a good thing!
 	if dict_common_config['lower_tokens'] == True :
-		strText = unicode( strText ).lower()
+		strText = str( strText ).lower()
 	else :
-		strText = unicode( strText );
+		strText = str( strText );
 
 	# remove ' since they cause problems later when processing
 	# as tokens wont match (e.g. dont != don't for simple matching)
@@ -707,7 +707,7 @@ def check_retweet( original_text ) :
 	"""
 
 	# check args without defaults
-	if not isinstance( original_text, unicode ) :
+	if not isinstance( original_text, str ) :
 		raise Exception( 'invalid original_text' )
 
 	bRetweet = False
@@ -789,7 +789,7 @@ def pos_tag_tokenset( token_set, lang, dict_common_config, timeout = 300.0 ) :
 	# check args without defaults
 	if not isinstance( token_set, list ) :
 		raise Exception( 'invalid token_set' )
-	if (not isinstance( lang, str )) and (not isinstance( lang, unicode )) :
+	if (not isinstance( lang, str )) and (not isinstance( lang, str )) :
 		raise Exception( 'invalid lang' )
 	if not isinstance( dict_common_config, dict ) :
 		raise Exception( 'invalid dict_common_config' )
@@ -947,12 +947,12 @@ def pos_tag_tokenset( token_set, lang, dict_common_config, timeout = 300.0 ) :
 			listSentIndex.append( nCount )
 
 		# read in a thread to avoid PIPE deadlocks (see popen() and all the pipe horrors for python!)
-		queueBufferOut = Queue.Queue()
+		queueBufferOut = queue.Queue()
 		threadOut = threading.Thread( target = read_pipe_stdout, args=(p.stdout,queueBufferOut,len(listTokens)) )
 		threadOut.setDaemon( True )
 		threadOut.start()
 
-		queueBufferErr = Queue.Queue()
+		queueBufferErr = queue.Queue()
 		threadErr = threading.Thread( target = read_pipe_stderr, args=(p.stderr,queueBufferErr) )
 		threadErr.setDaemon( True )
 		threadErr.start()
@@ -1214,7 +1214,7 @@ def serialize_tagged_list( list_pos, dict_common_config, serialization_style = '
 
 	# return serialized list
 	# note: spaces already in list at right places
-	return u''.join( listSerialized )
+	return ''.join( listSerialized )
 
 def serialize_tagged_tree( tree_sent, dict_common_config ) :
 	"""
@@ -1300,14 +1300,14 @@ def parse_serialized_tagged_tree( serialized_tree, dict_common_config ) :
 	:rtype: nltk.Tree
 	"""
 
-	if (not isinstance( serialized_tree, str)) and (not isinstance( serialized_tree, unicode)) :
+	if (not isinstance( serialized_tree, str)) and (not isinstance( serialized_tree, str)) :
 		raise Exception( 'invalid serialized_tree')
 	if not isinstance( dict_common_config, dict ) :
 		raise Exception( 'invalid dict_common_config' )
 
 	# leaf = tree children (e.g. (CAT_INDEX Cat. No.).
 	# there might be any characters after the POS tag (inc whitespace). make sure leaf match is preceeded by a non bracket characterand a space.
-	reLeaf = ur'(?<=[^()] )[^()]*'
+	reLeaf = r'(?<=[^()] )[^()]*'
 	listBrackets = '()'
 
 	# use NLTK parse function with this custom regex
@@ -1461,7 +1461,7 @@ def walk_evidence_tree( tree_sent, list_linguistic_labels, dict_common_config, d
 			if strEntityType in list_linguistic_labels :
 
 				# serialized text without POS tags
-				strEntity = u' '.join( leaf.leaves() )
+				strEntity = ' '.join( leaf.leaves() )
 
 				# unescape out any brackets
 				strEntity = unescape_token( strEntity )
@@ -1473,7 +1473,7 @@ def walk_evidence_tree( tree_sent, list_linguistic_labels, dict_common_config, d
 				#dict_common_config['logger'].info('MATCH = ' + repr(strEntity) )
 
 				# add entity to match list
-				if not strEntityType in dict_matches.keys() :
+				if not strEntityType in list(dict_matches.keys()) :
 					dict_matches[ strEntityType ] = []
 				dict_matches[ strEntityType ].append( strEntity )
 			
@@ -1519,7 +1519,7 @@ def match_linguistic_patterns( list_sent_trees, pattern_dict, dict_common_config
 
 		# apply regex removing matches from text as we go to avoid duplicate matches
 		listResult = []
-		for strPatternName in pattern_dict.keys() :
+		for strPatternName in list(pattern_dict.keys()) :
 
 			# each pattern type gets a fresh copy of the text to try to match against
 			strTextToMatch = copy.deepcopy( strTree )
@@ -1539,7 +1539,7 @@ def match_linguistic_patterns( list_sent_trees, pattern_dict, dict_common_config
 					else :
 						# get all named matches from this pattern
 						# if a named match is optional it might have a None value
-						for strGroupName in matchObj.groupdict().keys() :
+						for strGroupName in list(matchObj.groupdict().keys()) :
 
 							strMatch = matchObj.group( strGroupName )
 							if strMatch != None :
@@ -1554,7 +1554,7 @@ def match_linguistic_patterns( list_sent_trees, pattern_dict, dict_common_config
 
 								# need a replacement that will not match BUT will not prevent other matches, so keep the sent structure
 								if nSize > 4 :
-									strReplacement = u'(- ' + u'-'*(nSize-4) + u')'
+									strReplacement = '(- ' + '-'*(nSize-4) + ')'
 								else :
 									raise Exception( 'text match < 5 characters (invalid sent tree?) : ' + repr(strTree) )
 
@@ -1719,7 +1719,7 @@ def annotate_sent_with_pattern_matches( list_sent_trees, list_sent_matches, dict
 			#dict_common_config['logger'].info('T3 = ' + repr(strTree[:nPosMatchStart1]) )
 			#dict_common_config['logger'].info('T4 = ' + repr(strTree[nPosMatchEnd1:]) )
 
-			strTree = u'{:s}({:s} {:s}){:s}'.format(
+			strTree = '{:s}({:s} {:s}){:s}'.format(
 				strTree[:nPosMatchStart1],
 				strEntityType,
 				strMatch,

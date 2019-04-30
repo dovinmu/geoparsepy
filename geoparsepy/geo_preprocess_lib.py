@@ -116,8 +116,8 @@ Alternative approach is OSM reverse geocoding using Nominatim:
 
 """
 
-import os, sys, logging, traceback, codecs, datetime, copy, threading, Queue, time
-import PostgresqlHandler, geo_parse_lib, common_parse_lib
+import os, sys, logging, traceback, codecs, datetime, copy, threading, queue, time
+from . import PostgresqlHandler, geo_parse_lib, common_parse_lib
 import psycopg2, shapely, shapely.speedups, shapely.prepared, shapely.wkt, shapely.geometry
 
 def create_preprocessing_tables( focus_area, database_handle, schema, table_point = 'point', table_line = 'line', table_poly = 'poly', table_admin = 'admin', timeout_statement = 60, timeout_overall = 60, delete_contents = False, logger = None ) :
@@ -142,7 +142,7 @@ def create_preprocessing_tables( focus_area, database_handle, schema, table_poin
 		raise Exception( 'invalid focus_area' )
 	if not isinstance( database_handle, PostgresqlHandler.PostgresqlHandler ) :
 		raise Exception( 'invalid database_handle' )
-	if (not isinstance( schema, str )) and (not isinstance( schema, unicode)) :
+	if (not isinstance( schema, str )) and (not isinstance( schema, str)) :
 		raise Exception( 'invalid schema' )
 	
 	# make database tables for preprocessing work
@@ -373,7 +373,7 @@ def execute_preprocessing_focus_area( focus_area, database_pool, schema, table_p
 		raise Exception( 'invalid focus_area' )
 	if not isinstance( database_pool, dict ) :
 		raise Exception( 'invalid database_pool' )
-	if (not isinstance( schema, str )) and (not isinstance( schema, unicode)) :
+	if (not isinstance( schema, str )) and (not isinstance( schema, str)) :
 		raise Exception( 'invalid schema' )
 
 	if logger != None :
@@ -1105,7 +1105,7 @@ RETURNING loc_id;
 	# use parallel threads to execute SQL simultaneously for increased performance
 	# with a thread safe queue per table to track location ID results at end
 	# result = { db_table : (loc_start, loc_end) ... }
-	queueSQLInsertResults = { table_point : Queue.Queue(), table_line : Queue.Queue(), table_poly : Queue.Queue(), table_admin : Queue.Queue() }
+	queueSQLInsertResults = { table_point : queue.Queue(), table_line : queue.Queue(), table_poly : queue.Queue(), table_admin : queue.Queue() }
 
 	if logger != None :
 		logger.info( 'starting SQL threads' )
@@ -1195,7 +1195,7 @@ def execute_preprocessing_global( global_area, database_pool, schema, table_poin
 		raise Exception( 'invalid global_area' )
 	if not isinstance( database_pool, dict ) :
 		raise Exception( 'invalid database_pool' )
-	if (not isinstance( schema, str )) and (not isinstance( schema, unicode)) :
+	if (not isinstance( schema, str )) and (not isinstance( schema, str)) :
 		raise Exception( 'invalid schema' )
 
 	if logger != None :
@@ -1223,7 +1223,7 @@ def execute_preprocessing_global( global_area, database_pool, schema, table_poin
 		raise Exception( 'max_admin_level key not found in global_area' )
 
 	# make a list like ['1','2',...] for the SQL as admin levels are actually string values on OSM tables
-	listAdminLevels = range(1,nMaxAdminLevel+1)
+	listAdminLevels = list(range(1,nMaxAdminLevel+1))
 	for nIndex in range(len(listAdminLevels)) :
 		listAdminLevels[nIndex] = str( listAdminLevels[nIndex] )
 
@@ -1365,7 +1365,7 @@ RETURNING loc_id;
 	# use parallel threads to execute SQL simultaneously for increased performance
 	# with a thread safe queue per table to track location ID results at end
 	# result = { db_table : (loc_start, loc_end) ... }
-	queueSQLInsertResults = { table_point : Queue.Queue(), table_line : Queue.Queue(), table_poly : Queue.Queue(), table_admin : Queue.Queue() }
+	queueSQLInsertResults = { table_point : queue.Queue(), table_line : queue.Queue(), table_poly : queue.Queue(), table_admin : queue.Queue() }
 
 	if logger != None :
 		logger.info( 'starting SQL threads' )
@@ -1503,7 +1503,7 @@ def cache_preprocessed_locations( database_handle, location_ids, schema, geospat
 		raise Exception( 'invalid database_pool' )
 	if not isinstance( location_ids, dict ) :
 		raise Exception( 'invalid location_ids' )
-	if (not isinstance( schema, str )) and (not isinstance( schema, unicode)) :
+	if (not isinstance( schema, str )) and (not isinstance( schema, str)) :
 		raise Exception( 'invalid schema' )
 	if not isinstance( geospatial_config, dict ) :
 		raise Exception( 'invalid geospatial_config' )
@@ -1515,7 +1515,7 @@ def cache_preprocessed_locations( database_handle, location_ids, schema, geospat
 	# loop on each source to allow source filtering
 	# and get data in smaller chunks to avoid running out of memory (e.g. geonames has 3 million entries)
 	listPlaceData = []
-	listKeys = location_ids.keys()
+	listKeys = list(location_ids.keys())
 	listSQL = []
 	for strTableName in listKeys :
 
@@ -1564,7 +1564,7 @@ def cache_preprocessed_locations( database_handle, location_ids, schema, geospat
 			listEntry = list( listLocationData )
 
 			# convert name text to unicode()
-			listEntry[1] = unicode( listEntry[1], 'utf8' )
+			listEntry[1] = str( listEntry[1], 'utf8' )
 
 			# make a dict from the 2d array SQL returns for tags
 			# and replace the 2d array (dict is a lot quicker to search)
@@ -1573,8 +1573,8 @@ def cache_preprocessed_locations( database_handle, location_ids, schema, geospat
 			dictTags = {}
 			for listTagValue in listEntry[5] :
 				if listTagValue[1] != None :
-					strTag = unicode( listTagValue[0], 'utf8' ).replace( '_',' ' )
-					strValue = unicode( listTagValue[1], 'utf8' )
+					strTag = str( listTagValue[0], 'utf8' ).replace( '_',' ' )
+					strValue = str( listTagValue[1], 'utf8' )
 					if not strTag in dictTags :
 						dictTags[ strTag ] = strValue
 			listEntry[5] = dictTags
@@ -1626,11 +1626,11 @@ def get_point_for_osmid( osm_id, osm_type, geom, database_handle, timeout_statem
 	"""
 
 	# check args without defaults
-	if (not isinstance( osm_id, int )) and (not isinstance( osm_id, long )) :
+	if (not isinstance( osm_id, int )) and (not isinstance( osm_id, int )) :
 		raise Exception( 'invalid osm_id' )
-	if (not isinstance( osm_type, str )) and (not isinstance( osm_type, unicode )) :
+	if (not isinstance( osm_type, str )) and (not isinstance( osm_type, str )) :
 		raise Exception( 'invalid osm_type' )
-	if (not isinstance( geom, str )) and (not isinstance( geom, unicode )) :
+	if (not isinstance( geom, str )) and (not isinstance( geom, str )) :
 		raise Exception( 'invalid geom' )
 	if not isinstance( database_handle, PostgresqlHandler.PostgresqlHandler ) :
 		raise Exception( 'invalid database_handle' )
@@ -1667,7 +1667,7 @@ select members from public.planet_osm_rels WHERE id = {:s}
 				strAdminCentreOSMID = listMembers[ nIndex-1 ]
 				if strAdminCentreOSMID.startswith( 'n' ) :
 
-					nAdminCentreOSMID = long( strAdminCentreOSMID[ 1: ] )
+					nAdminCentreOSMID = int( strAdminCentreOSMID[ 1: ] )
 
 					strSQL = """
 select ST_AsText( way ) from public.planet_osm_point WHERE osm_id = {:s}

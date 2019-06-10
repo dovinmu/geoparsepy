@@ -255,10 +255,7 @@ def get_common_config( lang_codes = [], logger = None, corpus_dir = None,  stanf
 			for strTerm in listStoplist :
 				# convert NLTK corpus term (latin encoding) to (utf-8 encoding)
 				# note: NLTK 3 is all unicode so this is just for legacy code
-				if isinstance( strTerm,str ) :
-					strText = str( strTerm,'utf-8' )
-				else :
-					strText = strTerm
+				strText = strTerm
 
 				# clean and stem stoplist words as this is what will happen to all tokens
 				# we match against the stoplist
@@ -276,10 +273,7 @@ def get_common_config( lang_codes = [], logger = None, corpus_dir = None,  stanf
 		for strName in listNames :
 			# convert NLTK corpus term (latin encoding) to (utf-8 encoding)
 			# note: NLTK 3 is all unicode so this is just for legacy code
-			if isinstance( strName,str ) :
-				strText = str( strName,'utf-8' )
-			else :
-				strText = strName
+			strText = strName
 
 			# add name to name list
 			strTextClean = clean_text( strText, dictCommonConfig )
@@ -679,14 +673,13 @@ def clean_text( original_text, dict_common_config, whitespace_chars = None ) :
 	# remove ' since they cause problems later when processing
 	# as tokens wont match (e.g. dont != don't for simple matching)
 	# and John's -> John since its not actually a plural
-	strText = string.replace( strText,"'s",'' )
-	strText = string.replace( strText,"'S",'' )
-	strText = string.replace( strText,"'",'' )
+	for s in ["'s", "'S", "'"]:
+		strText = strText.replace(s, '')
 
 	# remove user defined whitespace
 	# note: do this AFTER checking for ' handling
 	for cWhitespace in strCharWhitespace :
-		strText = string.replace( strText,cWhitespace,' ' )
+		strText = strText.replace(cWhitespace, ' ')
 
 	# replace sequences of space and tabs with a single space
 	# strip normal whitespace (space, tab, newline) from start and end of text

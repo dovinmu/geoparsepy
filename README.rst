@@ -1,3 +1,5 @@
+Deprecated in favor of the official version being updated for Python 3: https://github.com/stuartemiddleton/geoparsepy.
+
 geoparsepy project
 ==================
 geoparsepy is a Python geoparsing library that will extract and disambiguate locations from text. It uses a local OpenStreetMap database which allows very high and unlimited geoparsing throughput, unlike approaches that use a third-party geocoding service (e.g.  Google Geocoding API).
